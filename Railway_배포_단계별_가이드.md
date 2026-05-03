@@ -32,14 +32,14 @@
 GitHub에서 제공하는 명령어를 복사하여 실행하세요:
 
 ```bash
-git remote add origin https://github.com/사용자명/저장소명.git
+git remote add origin https://github.com/사용자명/mylogin-mysql-app.git
 git branch -M main
 git push -u origin main
 ```
 
 **예시:**
 ```bash
-git remote add origin https://github.com/johndoe/mylogin-mysql-app.git
+git remote add origin https://github.com/gitHs-ops/mylogin-mysql-app.git
 git branch -M main
 git push -u origin main
 ```
