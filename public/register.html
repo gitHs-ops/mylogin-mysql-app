@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>회원가입</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <div class="form-box">
+            <h1>회원가입</h1>
+            <form id="registerForm">
+                <div class="input-group">
+                    <label for="username">아이디</label>
+                    <div class="input-with-button">
+                        <input type="text" id="username" name="username" required>
+                        <button type="button" id="checkBtn" class="btn-small">중복확인</button>
+                    </div>
+                    <span id="usernameCheck" class="check-message"></span>
+                </div>
+                <div class="input-group">
+                    <label for="password">비밀번호</label>
+                    <input type="password" id="password" name="password" required minlength="4">
+                </div>
+                <div class="input-group">
+                    <label for="confirmPassword">비밀번호 확인</label>
+                    <input type="password" id="confirmPassword" name="confirmPassword" required>
+                    <span id="passwordCheck" class="check-message"></span>
+                </div>
+                <div id="message" class="message"></div>
+                <button type="submit" class="btn" id="submitBtn" disabled>회원가입</button>
+                <div class="link-group">
+                    <a href="login.html">로그인 페이지로</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let usernameAvailable = false;
+        
+        // 아이디 중복 확인
+        document.getElementById('checkBtn').addEventListener('click', async () => {
+            const username = document.getElementById('username').value;
+            const checkMessage = document.getElementById('usernameCheck');
+            
+            if (!username) {
+                checkMessage.textContent = '아이디를 입력해주세요.';
+                checkMessage.className = 'check-message error';
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/check-username', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username })
+                });
+                
+                const data = await response.json();
+                
+                if (data.available) {
+                    checkMessage.textContent = data.message;
+                    checkMessage.className = 'check-message success';
+                    usernameAvailable = true;
+                } else {
+                    checkMessage.textContent = data.message;
+                    checkMessage.className = 'check-message error';
+                    usernameAvailable = false;
+                }
+                
+                checkSubmitButton();
+            } catch (error) {
+                checkMessage.textContent = '중복 확인 중 오류가 발생했습니다.';
+                checkMessage.className = 'check-message error';
+            }
+        });
+        
+        // 아이디 입력 변경 시 중복확인 초기화
+        document.getElementById('username').addEventListener('input', () => {
+            usernameAvailable = false;
+            document.getElementById('usernameCheck').textContent = '';
+            checkSubmitButton();
+        });
+        
+        // 비밀번호 확인
+        document.getElementById('confirmPassword').addEventListener('input', () => {
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            const passwordCheck = document.getElementById('passwordCheck');
+            
+            if (confirmPassword === '') {
+                passwordCheck.textContent = '';
+            } else if (password === confirmPassword) {
+                passwordCheck.textContent = '비밀번호가 일치합니다.';
+                passwordCheck.className = 'check-message success';
+            } else {
+                passwordCheck.textContent = '비밀번호가 일치하지 않습니다.';
+                passwordCheck.className = 'check-message error';
+            }
+            
+            checkSubmitButton();
+        });
+        
+        document.getElementById('password').addEventListener('input', () => {
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            const passwordCheck = document.getElementById('passwordCheck');
+            
+            if (confirmPassword !== '' && password === confirmPassword) {
+                passwordCheck.textContent = '비밀번호가 일치합니다.';
+                passwordCheck.className = 'check-message success';
+            } else if (confirmPassword !== '') {
+                passwordCheck.textContent = '비밀번호가 일치하지 않습니다.';
+                passwordCheck.className = 'check-message error';
+            }
+            
+            checkSubmitButton();
+        });
+        
+        // 제출 버튼 활성화 체크
+        function checkSubmitButton() {
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            const submitBtn = document.getElementById('submitBtn');
+            
+            if (usernameAvailable && password === confirmPassword && password.length >= 4) {
+                submitBtn.disabled = false;
+            } else {
+                submitBtn.disabled = true;
+            }
+        }
+        
+        // 회원가입 제출
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const messageDiv = document.getElementById('message');
+            
+            try {
+                const response = await fetch('/api/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username, password })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    messageDiv.textContent = data.message;
+                    messageDiv.className = 'message success';
+                    setTimeout(() => {
+                        window.location.href = 'login.html';
+                    }, 1500);
+                } else {
+                    messageDiv.textContent = data.message;
+                    messageDiv.className = 'message error';
+                }
+            } catch (error) {
+                messageDiv.textContent = '회원가입 중 오류가 발생했습니다.';
+                messageDiv.className = 'message error';
+            }
+        });
+    </script>
+</body>
+</html>
